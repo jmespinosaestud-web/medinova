@@ -20,3 +20,4 @@ Cuando GitHub Pages esté activado, agrega aquí el enlace público del sitio.
 
 ## Aviso
 Proyecto académico. No sustituye la orientación de profesionales de salud. El acceso y las compras del catálogo son demostraciones locales y no constituyen un sistema comercial real.
+ Sitio web: https://jmespinosaestud-web.github.io/medinova/
