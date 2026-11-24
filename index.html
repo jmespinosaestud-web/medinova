@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediNova | Inicio y organización de salud</title>
+<meta name="description" content="MediNova ayuda a organizar medicamentos, recordatorios y citas médicas en un solo lugar.">
+<link rel="icon" href="imagenes/logo1.png" type="image/png">
+<!-- Iconos y gráficos desde CDN (requieren internet; la app funciona sin ellos, solo se ven menos) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ===== 1. VARIABLES DE COLOR (cambia aquí la paleta) ===== */
+:root{--v:#1b5e46;--v2:#e3f3ea;--az:#2f6fb5;--az2:#e4eefa;--g:#f2f5f4;--t:#1d2b26;--m:#5d6b66;--r:#c0392b;--a:#d98a00;--rad:18px}
+body.azul{--v:#245b9e;--v2:#e4eefa;--az:#1b7f66}
+*{box-sizing:border-box;margin:0}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--g);color:var(--t);padding-bottom:74px;line-height:1.5}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--az);outline-offset:2px}
+/* ===== 2. MENÚ: abajo en celular, lateral en computadora ===== */
+nav{position:fixed;top:auto;bottom:0;left:0;right:0;width:auto;height:auto;flex-direction:row;align-items:stretch;padding:0;background:#fff;display:flex;flex-wrap:nowrap;justify-content:initial;gap:0;overflow-x:auto;z-index:20;box-shadow:0 -2px 12px #0002}
+nav .logo{display:none}
+nav button{flex:1 0 64px;border:0;background:none;padding:9px 4px;font-size:.68rem;color:var(--m)}
+nav button i{display:block;font-size:1.2rem;margin-bottom:2px}
+nav button.on{color:var(--v);font-weight:700;background:var(--v2)}
+main{padding:16px;max-width:1000px;margin:auto}
+section{display:none}section.on{display:block}
+@media(min-width:900px){
+ body{padding:0 0 0 220px}
+ nav{top:0;bottom:auto;width:220px;height:100vh;flex-direction:column;padding:16px 10px;box-shadow:2px 0 12px #0001}
+ nav .logo{display:block;font-weight:800;font-size:1.4rem;color:var(--v);letter-spacing:2px;padding:6px 12px 18px}
+ nav button{flex:0 0 auto;display:flex;gap:12px;align-items:center;text-align:left;font-size:.95rem;border-radius:12px;padding:11px 14px}
+ nav button i{margin:0;width:22px}
+}
+/* ===== 3. COMPONENTES ===== */
+h1{font-size:1.7rem;color:var(--v)}h2{font-size:1.25rem;margin:18px 0 10px;color:var(--v)}h3{font-size:1.05rem}
+.card{background:#fff;border-radius:var(--rad);padding:16px;box-shadow:0 2px 10px #0000000d}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.kpi small{color:var(--m)}.kpi b{display:block;font-size:1.35rem;color:var(--v)}
+.kpi i.ic{float:right;font-size:1.4rem;color:var(--az);background:var(--az2);padding:10px;border-radius:12px}
+.btn{background:var(--v);color:#fff;border:0;border-radius:12px;padding:10px 16px;font-weight:600}
+.btn.sec{background:var(--v2);color:var(--v)}.btn.mini{padding:6px 10px;font-size:.8rem}.btn.rojo{background:#fbe4e1;color:var(--r)}
+.fila{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.sp{justify-content:space-between}
+.tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.75rem;font-weight:700;background:var(--v2);color:var(--v)}
+.tag.w{background:#fff1d6;color:var(--a)}.tag.d{background:#fbe4e1;color:var(--r)}.tag.i{background:var(--az2);color:var(--az)}
+.barra{height:9px;border-radius:9px;background:#e4e9e7;overflow:hidden}.barra div{height:100%;background:var(--v);transition:width .4s}
+input,select,textarea{width:100%;padding:10px;border:1px solid #cfd8d4;border-radius:10px;font:inherit;margin-bottom:8px}
+label{font-size:.85rem;font-weight:600;color:var(--m)}
+.item{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #eef1ef;flex-wrap:wrap}
+.vacio{color:var(--m);text-align:center;padding:20px}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:left;border-bottom:1px solid #eef1ef;font-size:.9rem}
+/* Calendario */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.dia{border:0;background:var(--g);border-radius:10px;padding:9px 0;position:relative}
+.dia.hoy{outline:2px solid var(--az)}.dia.sel{background:var(--v);color:#fff}
+.dia i{position:absolute;bottom:3px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--r)}
+/* Línea de tiempo */
+.linea{border-left:3px solid var(--v2);margin-left:8px;padding-left:16px}
+.linea div{position:relative;padding-bottom:12px}
+.linea div::before{content:"";position:absolute;left:-23px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--v)}
+/* Inicio */
+.hero{background:linear-gradient(135deg,var(--v),var(--az));color:#fff;border-radius:26px;padding:28px 20px;display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));align-items:center}
+.hero h1{color:#fff;font-size:1.9rem;line-height:1.15}.hero .btn{background:#fff;color:var(--v)}.hero .btn.sec{background:#ffffff30;color:#fff}
+.tel{width:210px;margin:auto;background:#fff;color:var(--t);border:8px solid #12372b;border-radius:32px;padding:14px;animation:flota 4s ease-in-out infinite}
+.tel .m{background:var(--v2);border-radius:12px;padding:8px;margin-top:8px;font-size:.8rem}
+@keyframes flota{50%{transform:translateY(-8px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+dialog{border:0;border-radius:var(--rad);padding:20px;width:min(480px,94vw);max-height:92vh}dialog::backdrop{background:#0008}
+#toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--v);color:#fff;padding:12px 18px;border-radius:14px;z-index:99;display:none;max-width:92vw}
+footer{text-align:center;color:var(--m);font-size:.8rem;padding:24px 16px}
+.aviso{background:#fff1d6;color:#7a5200;border-radius:12px;padding:10px 14px;font-size:.85rem;margin:10px 0}
+/* Impresión: solo se imprime el informe */
+@media print{nav,footer,.noprint,#toast{display:none!important}body{padding:0;background:#fff}section{display:none!important}#s-informes{display:block!important}.card{box-shadow:none;border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<div id="toast" role="alert"></div>
+
+<nav id="menu">
+ <div class="logo">MEDINOVA</div>
+ <button data-s="inicio"><i class="fa-solid fa-house"></i>Inicio</button>
+ <button data-s="panel"><i class="fa-solid fa-gauge"></i>Panel</button>
+ <button data-s="medicamentos"><i class="fa-solid fa-pills"></i>Medicinas</button>
+ <button data-s="recordatorios"><i class="fa-solid fa-bell"></i>Recordatorios</button>
+ <button data-s="citas"><i class="fa-solid fa-calendar-check"></i>Citas</button>
+ <button data-s="historial"><i class="fa-solid fa-clock-rotate-left"></i>Historial</button>
+ <button data-s="inventario"><i class="fa-solid fa-boxes-stacked"></i>Inventario</button>
+ <button data-s="diario"><i class="fa-solid fa-heart-pulse"></i>Diario</button>
+ <button data-s="informes"><i class="fa-solid fa-file-medical"></i>Informe</button>
+ <button data-s="perfil"><i class="fa-solid fa-user"></i>Perfil</button>
+</nav>
+
+<main>
+<!-- ===== INICIO ===== -->
+<section id="s-inicio">
+ <div class="hero">
+  <div>
+   <h1>NO OLVIDES LO IMPORTANTE. CUIDA TU SALUD CON MEDINOVA.</h1>
+   <p style="margin:10px 0"><b>TU SALUD ORGANIZADA, TU TRANQUILIDAD CADA DÍA.</b><br>Organiza tus medicamentos, recuerda tus citas médicas y mantén toda tu información importante en un solo lugar.</p>
+   <div class="fila"><button class="btn" onclick="ir('panel')">COMENZAR AHORA</button><button class="btn sec" onclick="document.getElementById('func').scrollIntoView({behavior:'smooth'})">CONOCER LA APLICACIÓN</button></div>
+  </div>
+  <div class="tel" aria-hidden="true"><b style="color:var(--v)">MEDINOVA</b>
+   <div class="m"><i class="fa-solid fa-pills"></i> Próxima toma<br><b>13:00 · Vitamina C</b></div>
+   <div class="m"><i class="fa-solid fa-calendar-check"></i> Próxima cita<br><b>Medicina general</b></div>
+   <div class="m"><i class="fa-solid fa-circle-check"></i> Hoy: 2 de 3 tomas</div></div>
+ </div>
+ <div class="grid" style="margin-top:14px" id="ind-inicio"></div>
+ <h2 id="func">Funcionalidades</h2>
+ <div class="grid" id="funcs"></div>
+</section>
+
+<!-- ===== PANEL ===== -->
+<section id="s-panel">
+ <h1 id="saludo"></h1><p id="fecha" style="color:var(--m)"></p>
+ <div class="grid" id="kpis" style="margin-top:12px"></div>
+ <h2>ACTIVIDADES DE HOY</h2><div class="card" id="act-hoy"></div>
+</section>
+
+<!-- ===== MEDICAMENTOS ===== -->
+<section id="s-medicamentos">
+ <div class="fila sp"><h1>Mis medicamentos</h1><button class="btn" onclick="formMed()"><i class="fa-solid fa-plus"></i> AGREGAR MEDICAMENTO</button></div>
+ <div class="aviso">Anota solo lo indicado por tu profesional de salud. MEDINOVA no recomienda dosis ni cambia tratamientos.</div>
+ <input id="busca" placeholder="Buscar medicamento…" oninput="rMeds()">
+ <div class="grid" id="lista-meds"></div>
+</section>
+
+<!-- ===== RECORDATORIOS ===== -->
+<section id="s-recordatorios">
+ <div class="fila sp"><h1>Recordatorios de hoy</h1><button class="btn sec" onclick="permisoNotif()"><i class="fa-solid fa-bell"></i> Activar avisos del navegador</button></div>
+ <div class="aviso">Los avisos funcionan mientras MEDINOVA esté abierta en el navegador. No hay alarmas garantizadas con el navegador cerrado.</div>
+ <div id="lista-rec"></div>
+</section>
+
+<!-- ===== CITAS ===== -->
+<section id="s-citas">
+ <div class="fila sp"><h1>Citas médicas</h1><button class="btn" onclick="formCita()"><i class="fa-solid fa-plus"></i> Registrar cita</button></div>
+ <div class="card" style="margin-top:10px">
+  <div class="fila sp"><button class="btn mini sec" onclick="mes.setMonth(mes.getMonth()-1);rCitas()">◀</button><b id="cal-tit"></b><button class="btn mini sec" onclick="mes.setMonth(mes.getMonth()+1);rCitas()">▶</button></div>
+  <div class="cal" id="cal" style="margin-top:8px"></div>
+ </div>
+ <select id="filtro-c" onchange="rCitas()" style="margin-top:12px"><option value="todas">Todas</option><option value="proximas">Próximas</option><option value="pendiente">Pendientes</option><option value="completada">Completadas</option><option value="cancelada">Canceladas</option></select>
+ <div id="lista-citas"></div>
+</section>
+
+<!-- ===== HISTORIAL ===== -->
+<section id="s-historial">
+ <h1>Historial</h1>
+ <div class="grid" id="res-hist" style="margin:10px 0"></div>
+ <label>Consultar por fecha (vacío = todo)</label><input type="date" id="fecha-h" onchange="rHist()">
+ <div class="card"><div class="linea" id="linea"></div></div>
+</section>
+
+<!-- ===== INVENTARIO ===== -->
+<section id="s-inventario"><h1>Inventario</h1><div class="card" style="margin-top:10px;overflow-x:auto" id="tabla-inv"></div></section>
+
+<!-- ===== DIARIO ===== -->
+<section id="s-diario">
+ <div class="fila sp"><h1>Diario de salud</h1><button class="btn" onclick="formDiario()"><i class="fa-solid fa-plus"></i> Nuevo registro</button></div>
+ <div class="aviso">Registra tus mediciones manualmente. MEDINOVA no diagnostica ni interpreta resultados.</div>
+ <div class="card"><canvas id="gr" height="140"></canvas></div>
+ <div class="grid" id="lista-diario" style="margin-top:12px"></div>
+</section>
+
+<!-- ===== INFORME ===== -->
+<section id="s-informes">
+ <div class="fila sp noprint"><h1>Mi informe</h1><div class="fila"><button class="btn" onclick="rInf();toast('Informe actualizado')">GENERAR MI INFORME</button><button class="btn sec" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button></div></div>
+ <div id="inf-cuerpo"></div>
+</section>
+
+<!-- ===== PERFIL ===== -->
+<section id="s-perfil">
+ <h1>Mi perfil</h1>
+ <div class="card" style="margin-top:10px">
+  <label>Nombres completos</label><input id="p-nombre">
+  <label>Edad</label><input id="p-edad" type="number" min="0">
+  <label>Correo electrónico</label><input id="p-correo" type="email">
+  <label>Teléfono (opcional)</label><input id="p-tel">
+  <label>Contacto de emergencia (opcional)</label><input id="p-emerg">
+  <label>Tema visual</label><select id="p-tema"><option value="verde">Verde bienestar</option><option value="azul">Azul confianza</option></select>
+  <label><input type="checkbox" id="p-sonido" style="width:auto"> Sonidos activados</label>
+  <div class="fila"><button class="btn" onclick="guardarPerfil()">Guardar cambios</button><button class="btn rojo" onclick="reiniciar()">Restaurar datos de demostración</button></div>
+  <p class="aviso">Usa datos ficticios. No escribas información médica sensible real mientras pruebas la aplicación.</p>
+ </div>
+</section>
+</main>
+
+<dialog id="dlg"></dialog>
+<footer><b>MEDINOVA.</b><br>Proyecto desarrollado por Justin Matías Espinosa Imbaquingo.<br>Asignatura: Fundamentos de Programación I.<br>Instituto Superior Tecnológico para el Desarrollo ISPADE.<br>Docente: Ing. José Luis Enríquez.</footer>
+
+<script>
+/* ==========================================================
+   MEDINOVA – JavaScript puro. Partes del código:
+   1. Datos (objetos y arrays) y localStorage
+   2. Funciones de ayuda (fechas, formularios)
+   3. Medicamentos   4. Recordatorios   5. Citas
+   6. Historial      7. Inventario      8. Diario
+   9. Informe       10. Perfil         11. Navegación e inicio
+   ========================================================== */
+
+/* ---------- 1. DATOS Y localStorage ---------- */
+const CLAVE = 'medinova_v1';          // nombre con el que se guarda en el navegador
+const $ = id => document.getElementById(id);   // atajo para buscar elementos
+
+function fechaISO(d) {                 // convierte una fecha a "AAAA-MM-DD"
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+const hoy = () => fechaISO(new Date());
+function enDias(n) { const d = new Date(); d.setDate(d.getDate() + n); return fechaISO(d); }
+
+function datosDemo() {                 // datos ficticios iniciales
+  return {
+    perfil: { nombre: 'Justin Demo', edad: 19, correo: 'demo@medinova.ec', tel: '', emerg: '', sonido: true, tema: 'verde' },
+    meds: [
+      { id: 1, nombre: 'Paracetamol (demo)', pres: 'Tableta', dosis: '1 tableta', frec: 'Cada 12 horas', horas: '08:00,20:00', ini: hoy(), fin: '', inicial: 20, cant: 20, obs: '' },
+      { id: 2, nombre: 'Vitamina C (demo)', pres: 'Cápsula', dosis: '1 cápsula', frec: 'Una vez al día', horas: '13:00', ini: hoy(), fin: '', inicial: 30, cant: 6, obs: 'Después del almuerzo' }
+    ],
+    citas: [{ id: 1, medico: 'Dra. Ana Torres (demo)', esp: 'Medicina general', centro: 'Centro de salud', fecha: enDias(1), hora: '10:00', motivo: 'Control general', obs: '', estado: 'pendiente' }],
+    tomas: {},   // estado de cada toma: clave "idMed|fecha|hora"
+    log: [],     // historial de actividades
+    diario: [],  // mediciones
+    sigId: 10    // contador para crear identificadores únicos
+  };
+}
+let S = JSON.parse(localStorage.getItem(CLAVE) || 'null') || datosDemo();
+function guardar() { localStorage.setItem(CLAVE, JSON.stringify(S)); }
+
+/* ---------- 2. AYUDAS ---------- */
+function esc(t) { return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function registrar(texto) { S.log.push({ f: new Date().toISOString(), t: texto }); }
+let tt;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(tt); tt = setTimeout(() => t.style.display = 'none', 4500); }
+function pitido() {
+  if (!S.perfil.sonido) return;
+  try { const c = new AudioContext(), o = c.createOscillator(); o.connect(c.destination); o.frequency.value = 660; o.start(); o.stop(c.currentTime + .25); } catch (e) { }
+}
+// Formulario genérico en ventana: campos = [nombre, etiqueta, tipo, opciones, obligatorio]
+function abrirForm(titulo, campos, val, ok) {
+  let h = '<h3>' + titulo + '</h3><form id="f">';
+  campos.forEach(c => {
+    const v = esc(val[c[0]] ?? '');
+    h += '<label>' + c[1] + (c[4] ? ' *' : '') + '</label>';
+    if (c[2] === 'select') h += '<select name="' + c[0] + '">' + c[3].map(o => '<option' + (o == val[c[0]] ? ' selected' : '') + '>' + o + '</option>').join('') + '</select>';
+    else if (c[2] === 'textarea') h += '<textarea name="' + c[0] + '" rows="2">' + v + '</textarea>';
+    else h += '<input name="' + c[0] + '" type="' + c[2] + '" value="' + v + '"' + (c[4] ? ' required' : '') + (c[2] === 'number' ? ' min="0" step="any"' : '') + '>';
+  });
+  h += '<div class="fila"><button type="button" class="btn sec" onclick="dlg.close()">Cancelar</button><button class="btn">Guardar</button></div></form>';
+  $('dlg').innerHTML = h; $('dlg').showModal();
+  $('f').onsubmit = e => {
+    e.preventDefault();
+    const o = {}; campos.forEach(c => o[c[0]] = e.target.elements[c[0]].value.trim());
+    if (ok(o) !== false) $('dlg').close();
+  };
+}
+const dlg = $('dlg');
+
+/* ---------- 3. MEDICAMENTOS ---------- */
+function formMed(id) {
+  const m = S.meds.find(x => x.id === id) || {};
+  abrirForm(id ? 'Editar medicamento' : 'Agregar medicamento', [
+    ['nombre', 'Nombre del medicamento', 'text', 0, 1],
+    ['pres', 'Presentación', 'select', ['Tableta', 'Cápsula', 'Jarabe', 'Gotas', 'Inyección', 'Crema', 'Otra']],
+    ['dosis', 'Dosis indicada por tu profesional', 'text', 0, 1],
+    ['frec', 'Frecuencia (ej: cada 8 horas)', 'text', 0, 1],
+    ['horas', 'Horarios (ej: 08:00,16:00,22:00)', 'text', 0, 1],
+    ['ini', 'Fecha de inicio', 'date', 0, 1],
+    ['fin', 'Fecha de finalización (opcional)', 'date'],
+    ['cant', 'Cantidad disponible', 'number', 0, 1],
+    ['obs', 'Observaciones', 'textarea']
+  ], m, o => {
+    const horas = o.horas.split(',').map(h => h.trim());
+    for (const h of horas) if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(h)) { alert('Escribe los horarios así: 08:00,20:00'); return false; }
+    o.horas = horas.join(','); o.cant = Math.max(0, Number(o.cant));
+    if (id) { Object.assign(m, o); if (o.cant > m.inicial) m.inicial = o.cant; registrar('Medicamento editado: ' + m.nombre); }
+    else { o.id = S.sigId++; o.inicial = o.cant; S.meds.push(o); registrar('Medicamento registrado: ' + o.nombre); }
+    guardar(); render();
+  });
+}
+function borrarMed(id) {
+  const m = S.meds.find(x => x.id === id);
+  if (!confirm('¿Eliminar ' + m.nombre + '?')) return;
+  S.meds = S.meds.filter(x => x.id !== id); registrar('Medicamento eliminado: ' + m.nombre); guardar(); render();
+}
+function rMeds() {
+  const q = $('busca').value.toLowerCase();
+  const lista = S.meds.filter(m => m.nombre.toLowerCase().includes(q));
+  $('lista-meds').innerHTML = lista.length ? lista.map(m => `
+   <div class="card"><div class="fila sp"><h3>${esc(m.nombre)}</h3><span class="tag ${activo(m) ? '' : 'w'}">${activo(m) ? 'Activo' : 'Inactivo'}</span></div>
+    <p>${esc(m.pres)} · ${esc(m.dosis)}</p><p style="color:var(--m)">${esc(m.frec)}<br><i class="fa-regular fa-clock"></i> ${esc(m.horas.replace(/,/g, ' · '))}<br>Desde ${m.ini}${m.fin ? ' hasta ' + m.fin : ''}<br>Disponible: ${m.cant}</p>
+    ${m.obs ? '<p style="font-size:.85rem">' + esc(m.obs) + '</p>' : ''}
+    <div class="fila"><button class="btn mini sec" onclick="formMed(${m.id})">Editar</button><button class="btn mini rojo" onclick="borrarMed(${m.id})">Eliminar</button></div></div>`).join('')
+    : '<p class="vacio">No hay medicamentos. Toca “Agregar medicamento”.</p>';
+}
+function activo(m) { const h = hoy(); return m.ini <= h && (!m.fin || m.fin >= h); }
+
+/* ---------- 4. RECORDATORIOS ---------- */
+function franja(hr) { const n = Number(hr.slice(0, 2)); return n < 12 ? 'Mañana' : n < 15 ? 'Mediodía' : n < 19 ? 'Tarde' : 'Noche'; }
+function dosisHoy() {                  // arma la lista de tomas del día
+  const h = hoy(), lista = [];
+  S.meds.forEach(m => {
+    if (!activo(m)) return;
+    m.horas.split(',').forEach(hr => {
+      const k = m.id + '|' + h + '|' + hr, t = S.tomas[k] || { e: 'pendiente' };
+      lista.push({ k, m, hr, e: t.e, pos: t.pos || hr });
+    });
+  });
+  return lista.sort((a, b) => a.pos.localeCompare(b.pos));
+}
+function buscarDosis(k) { return S.meds.find(m => m.id == k.split('|')[0]); }
+function tomar(k) {
+  const m = buscarDosis(k); if (!m || (S.tomas[k] && S.tomas[k].e === 'tomado')) return;
+  S.tomas[k] = { e: 'tomado' };
+  if (m.cant > 0) m.cant--;            // descuenta del inventario (nunca negativo)
+  registrar('Toma confirmada: ' + m.nombre + ' (' + k.split('|')[2] + ')'); guardar(); render();
+  if (m.cant <= 5) toast('Quedan pocas unidades de ' + m.nombre);
+}
+function posponer(k) {                 // suma 15 minutos a la hora actual
+  const d = new Date(Date.now() + 15 * 60000);
+  S.tomas[k] = { e: 'pospuesto', pos: String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') };
+  alertadas.delete(k); registrar('Toma pospuesta 15 min: ' + buscarDosis(k).nombre); guardar(); render();
+}
+function pendiente(k) {
+  const m = buscarDosis(k);
+  if (S.tomas[k] && S.tomas[k].e === 'tomado') m.cant = Math.min(m.cant + 1, Math.max(m.inicial, m.cant + 1));  // devuelve la unidad
+  S.tomas[k] = { e: 'pendiente' }; alertadas.delete(k); registrar('Toma marcada como pendiente: ' + m.nombre); guardar(); render();
+}
+function rRec() {
+  const ds = dosisHoy(); let h = '';
+  ['Mañana', 'Mediodía', 'Tarde', 'Noche'].forEach(f => {
+    const g = ds.filter(d => franja(d.pos) === f); if (!g.length) return;
+    h += '<h2>' + f + '</h2><div class="card">' + g.map(d => `
+     <div class="item"><div><b>${esc(d.m.nombre)}</b><br><span style="color:var(--m)">${esc(d.m.dosis)} · ${d.pos}${d.pos !== d.hr ? ' (pospuesta)' : ''}</span></div>
+      <span class="tag ${d.e === 'tomado' ? '' : d.e === 'pospuesto' ? 'i' : 'w'}">${d.e === 'tomado' ? 'Completado' : 'Pendiente'}</span>
+      <div class="fila"><button class="btn mini" onclick="tomar('${d.k}')">YA LO TOMÉ</button><button class="btn mini sec" onclick="posponer('${d.k}')">POSPONER</button><button class="btn mini sec" onclick="pendiente('${d.k}')">MARCAR COMO PENDIENTE</button></div></div>`).join('') + '</div>';
+  });
+  $('lista-rec').innerHTML = h || '<p class="vacio">Hoy no hay tomas programadas.</p>';
+}
+const alertadas = new Set();           // tomas ya avisadas (para no repetir)
+function revisarAlertas() {            // se ejecuta cada 30 segundos
+  const d = new Date(), ahora = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  dosisHoy().forEach(x => {
+    if (x.e !== 'tomado' && x.pos <= ahora && !alertadas.has(x.k)) {
+      alertadas.add(x.k);
+      const msg = 'Es hora de tu medicamento: ' + x.m.nombre + ' (' + x.m.dosis + ')';
+      toast('⏰ ' + msg); pitido();
+      if ('Notification' in window && Notification.permission === 'granted') new Notification('MEDINOVA', { body: msg });
+    }
+  });
+}
+function permisoNotif() {
+  if (!('Notification' in window)) return toast('Tu navegador no admite notificaciones');
+  Notification.requestPermission().then(p => toast(p === 'granted' ? 'Avisos del navegador activados' : 'No se activaron los avisos'));
+}
+
+/* ---------- 5. CITAS ---------- */
+let mes = new Date(); mes.setDate(1);
+let selDia = '';
+function formCita(id) {
+  const c = S.citas.find(x => x.id === id) || { fecha: hoy(), hora: '09:00' };
+  abrirForm(id ? 'Editar cita' : 'Registrar cita', [
+    ['medico', 'Nombre del médico', 'text', 0, 1], ['esp', 'Especialidad', 'text', 0, 1], ['centro', 'Centro médico', 'text', 0, 1],
+    ['fecha', 'Fecha', 'date', 0, 1], ['hora', 'Hora', 'time', 0, 1], ['motivo', 'Motivo de la consulta', 'text', 0, 1], ['obs', 'Observaciones', 'textarea']
+  ], c, o => {
+    if (id) { Object.assign(c, o); registrar('Cita editada: ' + c.medico); }
+    else { o.id = S.sigId++; o.estado = 'pendiente'; S.citas.push(o); registrar('Cita registrada: ' + o.medico + ' el ' + o.fecha); }
+    guardar(); render();
+  });
+}
+function estadoCita(id, e) { const c = S.citas.find(x => x.id === id); c.estado = e; registrar('Cita ' + e + ': ' + c.medico); guardar(); render(); }
+function borrarCita(id) { if (!confirm('¿Eliminar esta cita?')) return; S.citas = S.citas.filter(x => x.id !== id); guardar(); render(); }
+function proxima(c) { return c.estado === 'pendiente' && c.fecha >= hoy() && c.fecha <= enDias(2); }
+function rCitas() {
+  const y = mes.getFullYear(), m = mes.getMonth();
+  $('cal-tit').textContent = mes.toLocaleDateString('es', { month: 'long', year: 'numeric' });
+  let h = ['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => '<b>' + d + '</b>').join('');
+  for (let i = 0; i < (new Date(y, m, 1).getDay() + 6) % 7; i++) h += '<span></span>';   // huecos antes del día 1
+  for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {                         // ciclo por cada día del mes
+    const f = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const hay = S.citas.some(c => c.fecha === f && c.estado !== 'cancelada');
+    h += `<button class="dia${f === hoy() ? ' hoy' : ''}${f === selDia ? ' sel' : ''}" onclick="selDia=selDia==='${f}'?'':'${f}';rCitas()">${d}${hay ? '<i></i>' : ''}</button>`;
+  }
+  $('cal').innerHTML = h;
+  const fl = $('filtro-c').value;
+  const lista = S.citas.filter(c => (!selDia || c.fecha === selDia) && (fl === 'todas' || (fl === 'proximas' ? proxima(c) : c.estado === fl)))
+    .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+  $('lista-citas').innerHTML = (selDia ? '<p class="aviso">Mostrando el ' + selDia + ' (toca el día otra vez para quitar el filtro)</p>' : '') +
+    (lista.length ? lista.map(c => `
+    <div class="card" style="margin-top:10px"><div class="fila sp"><h3>${esc(c.medico)} · ${esc(c.esp)}</h3>
+     <span class="tag ${c.estado === 'completada' ? '' : c.estado === 'cancelada' ? 'd' : 'i'}">${c.estado}</span></div>
+     <p>${c.fecha} a las ${c.hora} · ${esc(c.centro)}</p><p style="color:var(--m)">${esc(c.motivo)}${c.obs ? ' — ' + esc(c.obs) : ''}</p>
+     ${proxima(c) ? '<p class="aviso">⚠️ ¡Cita próxima! Prepárate con tiempo.</p>' : ''}
+     <div class="fila"><button class="btn mini" onclick="estadoCita(${c.id},'completada')">Marcar como completada</button><button class="btn mini sec" onclick="formCita(${c.id})">Editar</button>
+     <button class="btn mini sec" onclick="estadoCita(${c.id},'cancelada')">Cancelar</button><button class="btn mini rojo" onclick="borrarCita(${c.id})">Eliminar</button></div></div>`).join('')
+      : '<p class="vacio">No hay citas para mostrar.</p>');
+}
+
+/* ---------- 6. HISTORIAL ---------- */
+function rHist() {
+  const tomas = Object.values(S.tomas).filter(t => t.e === 'tomado').length;
+  const pend = dosisHoy().filter(d => d.e !== 'tomado').length;
+  const datos = [['Medicamentos registrados', S.meds.length], ['Tomas confirmadas', tomas], ['Tomas pendientes hoy', pend],
+    ['Citas realizadas', S.citas.filter(c => c.estado === 'completada').length], ['Citas futuras', S.citas.filter(c => c.estado === 'pendiente' && c.fecha >= hoy()).length]];
+  $('res-hist').innerHTML = datos.map(d => `<div class="card kpi"><small>${d[0]}</small><b>${d[1]}</b></div>`).join('');
+  const f = $('fecha-h').value;
+  const l = S.log.filter(x => !f || x.f.slice(0, 10) === f || fechaISO(new Date(x.f)) === f).slice().reverse();
+  $('linea').innerHTML = l.length ? l.map(x => '<div><small style="color:var(--m)">' + new Date(x.f).toLocaleString('es') + '</small><br>' + esc(x.t) + '</div>').join('') : '<p class="vacio">Sin actividades para esa fecha.</p>';
+}
+
+/* ---------- 7. INVENTARIO ---------- */
+function estadoInv(m) {                // reglas del estado de existencias
+  if (m.cant <= 5) return ['Existencias bajas', 'd'];
+  if (m.cant <= 10) return ['Próximo a reponer', 'w'];
+  return ['Existencias suficientes', ''];
+}
+function rInv() {
+  $('tabla-inv').innerHTML = S.meds.length ? '<table><tr><th>Nombre</th><th>Inicial</th><th>Actual</th><th>Presentación</th><th>Estado</th></tr>' + S.meds.map(m => {
+    const e = estadoInv(m), p = m.inicial ? Math.round(m.cant / m.inicial * 100) : 0;
+    return `<tr><td><b>${esc(m.nombre)}</b><div class="barra"><div style="width:${p}%"></div></div></td><td>${m.inicial}</td><td>${m.cant}</td><td>${esc(m.pres)}</td><td><span class="tag ${e[1]}">${e[0]}</span></td></tr>`;
+  }).join('') + '</table>' : '<p class="vacio">Aún no hay medicamentos.</p>';
+}
+
+/* ---------- 8. DIARIO ---------- */
+function formDiario() {
+  abrirForm('Nuevo registro de salud', [
+    ['fecha', 'Fecha', 'date', 0, 1], ['peso', 'Peso (kg)', 'number'], ['presion', 'Presión arterial (ej: 120/80)', 'text'], ['glucosa', 'Glucosa (mg/dL)', 'number'],
+    ['animo', 'Estado de ánimo', 'select', ['Bien', 'Regular', 'Cansado', 'Ansioso', 'Triste']], ['sintomas', 'Síntomas', 'text'], ['obs', 'Observaciones', 'textarea']
+  ], { fecha: hoy() }, o => {
+    o.id = S.sigId++; S.diario.push(o); registrar('Registro de diario: ' + o.fecha); guardar(); render();
+  });
+}
+let graf;
+function rDiario() {
+  const d = S.diario.slice().sort((a, b) => a.fecha.localeCompare(b.fecha));
+  $('lista-diario').innerHTML = d.length ? d.slice().reverse().map(x => `
+   <div class="card"><b>${x.fecha}</b> <span class="tag i">${esc(x.animo)}</span>
+    <p>${x.peso ? 'Peso: ' + esc(x.peso) + ' kg<br>' : ''}${x.presion ? 'Presión: ' + esc(x.presion) + '<br>' : ''}${x.glucosa ? 'Glucosa: ' + esc(x.glucosa) + ' mg/dL<br>' : ''}${x.sintomas ? 'Síntomas: ' + esc(x.sintomas) + '<br>' : ''}${esc(x.obs)}</p>
+    <button class="btn mini rojo" onclick="S.diario=S.diario.filter(z=>z.id!==${x.id});guardar();render()">Eliminar</button></div>`).join('') : '<p class="vacio">Aún no hay registros. Es un espacio opcional.</p>';
+  if (typeof Chart === 'undefined') return;
+  if (graf) graf.destroy();
+  graf = new Chart($('gr'), { type: 'line', data: { labels: d.map(x => x.fecha), datasets: [
+    { label: 'Peso (kg)', data: d.map(x => x.peso ? Number(x.peso) : null), borderColor: '#1b5e46', tension: .3 },
+    { label: 'Glucosa (mg/dL)', data: d.map(x => x.glucosa ? Number(x.glucosa) : null), borderColor: '#2f6fb5', tension: .3, yAxisID: 'y2' }] },
+    options: { spanGaps: true, scales: { y2: { position: 'right', grid: { drawOnChartArea: false } } } } });
+}
+
+/* ---------- 9. INFORME ---------- */
+function rInf() {
+  const ds = dosisHoy(), ok = ds.filter(d => d.e === 'tomado').length;
+  $('inf-cuerpo').innerHTML = `<div class="card" style="margin-top:10px">
+   <h2 style="margin-top:0">MEDINOVA – Informe personal</h2><p>${esc(S.perfil.nombre)} · ${S.perfil.edad} años · Generado el ${new Date().toLocaleString('es')}</p>
+   <h3 style="margin-top:14px">Medicamentos</h3><table><tr><th>Nombre</th><th>Dosis</th><th>Horarios</th><th>Disponible</th></tr>${S.meds.map(m => `<tr><td>${esc(m.nombre)}</td><td>${esc(m.dosis)}</td><td>${esc(m.horas)}</td><td>${m.cant}</td></tr>`).join('')}</table>
+   <h3 style="margin-top:14px">Medicamentos próximos a agotarse</h3><p>${S.meds.filter(m => m.cant <= 10).map(m => esc(m.nombre) + ' (' + m.cant + ')').join(', ') || 'Ninguno'}</p>
+   <h3 style="margin-top:14px">Citas médicas</h3><table><tr><th>Fecha</th><th>Médico</th><th>Motivo</th><th>Estado</th></tr>${S.citas.slice().sort((a, b) => a.fecha.localeCompare(b.fecha)).map(c => `<tr><td>${c.fecha} ${c.hora}</td><td>${esc(c.medico)}</td><td>${esc(c.motivo)}</td><td>${c.estado}</td></tr>`).join('')}</table>
+   <h3 style="margin-top:14px">Actividades de hoy</h3><p>${ok} de ${ds.length} tomas completadas.</p>
+   <h3 style="margin-top:14px">Últimas tomas registradas</h3><p>${S.log.filter(x => x.t.startsWith('Toma confirmada')).slice(-8).reverse().map(x => new Date(x.f).toLocaleString('es') + ' – ' + esc(x.t)).join('<br>') || 'Sin tomas registradas'}</p>
+   <p class="aviso">Información anotada por el usuario. No reemplaza la opinión de un profesional de salud.</p></div>`;
+}
+
+/* ---------- 10. PERFIL ---------- */
+function cargarPerfil() {
+  const p = S.perfil;
+  $('p-nombre').value = p.nombre; $('p-edad').value = p.edad; $('p-correo').value = p.correo; $('p-tel').value = p.tel;
+  $('p-emerg').value = p.emerg; $('p-tema').value = p.tema; $('p-sonido').checked = p.sonido;
+  document.body.classList.toggle('azul', p.tema === 'azul');
+}
+function guardarPerfil() {
+  S.perfil = { nombre: $('p-nombre').value || 'Usuario', edad: $('p-edad').value, correo: $('p-correo').value, tel: $('p-tel').value, emerg: $('p-emerg').value, tema: $('p-tema').value, sonido: $('p-sonido').checked };
+  guardar(); cargarPerfil(); render(); toast('Perfil guardado');
+}
+function reiniciar() { if (confirm('Se borrarán tus datos y volverán los de demostración. ¿Continuar?')) { S = datosDemo(); guardar(); cargarPerfil(); render(); } }
+
+/* ---------- PANEL e INICIO ---------- */
+function rPanel() {
+  const h = new Date().getHours(), ds = dosisHoy(), ok = ds.filter(d => d.e === 'tomado').length;
+  $('saludo').textContent = (h < 12 ? 'Buenos días, ' : h < 19 ? 'Buenas tardes, ' : 'Buenas noches, ') + S.perfil.nombre.split(' ')[0];
+  $('fecha').textContent = new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const sig = ds.find(d => d.e !== 'tomado'), cita = S.citas.filter(c => c.estado === 'pendiente' && c.fecha >= hoy()).sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora))[0];
+  const pct = ds.length ? Math.round(ok / ds.length * 100) : 0;
+  $('kpis').innerHTML = `
+   <div class="card kpi"><i class="ic fa-solid fa-pills"></i><small>MIS MEDICAMENTOS</small><b>${S.meds.length}</b></div>
+   <div class="card kpi"><i class="ic fa-solid fa-bell"></i><small>PRÓXIMA TOMA</small><b>${sig ? esc(sig.m.nombre) : 'Todo al día'}</b>${sig ? sig.pos : ''}</div>
+   <div class="card kpi"><i class="ic fa-solid fa-calendar-check"></i><small>MIS CITAS</small><b>${cita ? cita.fecha : 'Sin citas'}</b>${cita ? esc(cita.medico) + ' · ' + cita.hora : ''}</div>
+   <div class="card kpi"><i class="ic fa-solid fa-chart-pie"></i><small>MI ORGANIZACIÓN</small><b>${pct}%</b><div class="barra"><div style="width:${pct}%"></div></div></div>`;
+  $('act-hoy').innerHTML = (ds.map(d => `<div class="item"><span>${d.e === 'tomado' ? '✅' : '⏳'} ${d.pos} · ${esc(d.m.nombre)}</span><span class="tag ${d.e === 'tomado' ? '' : 'w'}">${d.e === 'tomado' ? 'Completado' : 'Pendiente'}</span></div>`).join('') +
+    S.citas.filter(c => c.fecha === hoy() && c.estado === 'pendiente').map(c => `<div class="item"><span>📅 ${c.hora} · Cita con ${esc(c.medico)}</span><span class="tag i">Cita</span></div>`).join('')) || '<p class="vacio">Nada programado para hoy.</p>';
+}
+function rInicio() {
+  $('ind-inicio').innerHTML = [['Medicamentos', S.meds.length], ['Citas pendientes', S.citas.filter(c => c.estado === 'pendiente').length], ['Tomas de hoy', dosisHoy().length]].map(i => `<div class="card kpi"><small>${i[0]}</small><b>${i[1]}</b></div>`).join('');
+  $('funcs').innerHTML = [['fa-pills', 'Medicamentos', 'Registra dosis, horarios y existencias.'], ['fa-bell', 'Recordatorios', 'Avisos mientras la app está abierta.'], ['fa-calendar-check', 'Citas', 'Calendario y lista de consultas.'],
+    ['fa-boxes-stacked', 'Inventario', 'Sabe cuándo reponer.'], ['fa-heart-pulse', 'Diario de salud', 'Peso, presión y glucosa con gráficos.'], ['fa-file-medical', 'Informes', 'Imprime un resumen para tu consulta.']]
+    .map(f => `<div class="card"><i class="fa-solid ${f[0]}" style="font-size:1.5rem;color:var(--az)"></i><h3>${f[1]}</h3><p style="color:var(--m)">${f[2]}</p></div>`).join('');
+}
+
+/* ---------- 11. NAVEGACIÓN ---------- */
+function render() { rInicio(); rPanel(); rMeds(); rRec(); rCitas(); rHist(); rInv(); rInf(); if ($('s-diario').classList.contains('on')) rDiario(); }
+function ir(s) {
+  document.querySelectorAll('section').forEach(x => x.classList.toggle('on', x.id === 's-' + s));
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.s === s));
+  render(); window.scrollTo(0, 0);
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => ir(b.dataset.s));
+cargarPerfil(); ir('inicio');
+setInterval(revisarAlertas, 30000); setTimeout(revisarAlertas, 2000);
+</script>
+
+<footer style="text-align:center;padding:22px 12px;color:#5d6b66;font-size:.85rem">
+  <p>MediNova · Tu salud organizada, tu tranquilidad cada día.</p>
+  <p><a href="pagina2.html">Visitar catálogo</a> · <a href="pagina3.html">Conocer el proyecto</a></p>
+</footer>
+</body>
+</html>

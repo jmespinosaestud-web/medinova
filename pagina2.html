@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediNova | Catálogo de productos</title>
+    <meta name="description" content="Explora el catálogo académico de MediNova y conoce sus productos de bienestar y cuidado personal.">
+    <link rel="icon" href="imagenes/logo1.png" type="image/png">
+    <link rel="stylesheet" href="styles.css">
+    <style>img, video { max-width: 100%; height: auto; } a:focus, button:focus, input:focus, select:focus { outline: 3px solid #2563eb; outline-offset: 2px; }</style>
+</head>
+<body>
+<nav>
+    <a href="index.html">Inicio MediNova</a>
+    <a href="pagina2.html">Tienda</a>
+    <a href="pagina3.html">Servicios</a>
+    <a href="pagina3.html">Información</a>
+</nav>
+<main class="contenedor-tienda">
+    <header class="encabezado-tienda">
+        <div>
+            <span class="marca">MEDINOVA · CUIDADO Y BIENESTAR</span>
+            <h1>Tu bienestar comienza con una buena elección.</h1>
+            <p>Explora nuestro catálogo de productos de cuidado personal, bienestar y salud. Encuentra lo que buscas de forma sencilla.</p>
+        </div>
+        <div class="sello-salud" aria-hidden="true">✚</div>
+    </header>
+    <section class="panel-tienda">
+        <h2>Catálogo de productos</h2>
+        <p class="subtitulo">Busca un producto o selecciona una categoría para encontrarlo.</p>
+        <div class="controles">
+            <input type="text" id="campoBuscar" placeholder="Buscar producto">
+            <select id="selCategoria">
+                <option value="todas">Todas las categorías</option>
+                <option value="Medicamentos">Medicamentos</option>
+                <option value="Cuidado personal">Cuidado personal</option>
+                <option value="Bienestar">Bienestar</option>
+            </select>
+            <button id="btnFiltrar" type="button">Buscar</button>
+        </div>
+        <ul id="listaProductos"></ul>
+    </section>
+    <section class="carrito">
+        <div class="carrito-cabecera">
+            <h2>Mi carrito de compras</h2>
+            <button id="btnVaciar" type="button">Vaciar carrito</button>
+        </div>
+        <p id="textoCarrito">El carrito está vacío.</p>
+        <button id="btnComprar" type="button">Finalizar compra</button>
+        <p id="mensajeCompra" role="status"></p>
+    </section>
+
+    <section class="panel-tienda zona-cuenta" id="zonaCuenta">
+        <h2>Mi cuenta</h2>
+        <p class="subtitulo">Crea tu cuenta o inicia sesión para registrar tus compras.</p>
+        <div class="cuenta-campos">
+            <input type="text" id="cuUsuario" placeholder="Usuario" autocomplete="username">
+            <input type="password" id="cuClave" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="current-password">
+        </div>
+        <div class="cuenta-botones">
+            <button id="btnRegistro" type="button">Crear cuenta</button>
+            <button id="btnEntrar" type="button">Iniciar sesión</button>
+            <button id="btnSalir" type="button" class="btn-secundario">Cerrar sesión</button>
+        </div>
+        <p id="mensajeCuenta" role="status"></p>
+        <p id="estadoSesion">Sin sesión.</p>
+        <h3>Mis pedidos</h3>
+        <ul id="listaPedidos"><li>Inicia sesión para consultar tus pedidos.</li></ul>
+    </section>
+
+    <p class="aviso">Actividad académica: los precios son referenciales. Este catálogo no sustituye la orientación de un profesional de salud. No te automediques.</p>
+    <footer class="pie-tienda">© MediNova · Tu salud organizada, tu tranquilidad cada día.</footer>
+</main>
+<script src="script.js"></script>
+</body>
+</html>
